@@ -1,0 +1,21 @@
+// Stack multiple Shimadzu measurements into one JMP file
+// Click 'Run Script' (or Ctrl+R) and select the directory with your raw data files
+
+directory = Pick Directory ( "Select a directory" );
+fileNames = Files In Directory( directory );
+summary = New Table( "Shimadzu Data",  New Column( "ID", Character ), New Column( "Wavelength", numeric ), New Column( "Data", numeric ) );
+
+For( i = 1, i <= N Items( fileNames ), i++,
+  filename = fileNames[i];
+  If( Ends With( filename, ".txt" ),
+    dt = Open( directory || filename, invisible );
+    dt << Select Rows( 2::N Rows(dt) );
+    dt2 = dt << Subset( selected rows, invisible );
+    Column( dt2, 1 ) << Set Name( "Wavelength" ); 
+    Column( dt2, 2 ) << Set Name( "Data" );
+    dt2 << New Column( "ID", Character, Set each value( Regex( filename, "^(.*)\.txt", "\1" ) ) );
+    summary << Concatenate( dt2, Append to First Table(1) );
+    Close( dt, nosave );
+    Close( dt2, nosave );
+  );
+);
